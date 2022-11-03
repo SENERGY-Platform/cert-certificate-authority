@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  cfssl:
+    build:
+      context: ..
+      dockerfile: ./docker_build/Dockerfile
+      target: dev
+    container_name: cfssl
+    image: cfssl
+    environment:
+      - DB_DRIVER=postgres
+      - DB_URL=postgres://user:password@host/db
+    volumes:
+      - ~/Desktop/projects/mgw_local_certificates/ca_certs:/etc/certs
+      - /home/hannes/Desktop/projects/mgw_local_certificates/certificate-authority/ca:/go/src/app/ca
+    ports:
+      - 8080:8080
