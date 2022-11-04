@@ -22,8 +22,12 @@ ENTRYPOINT ["./app"]
 FROM golang:1.18 AS dev
 WORKDIR /root/
 
-WORKDIR /go/src/app/ca
+WORKDIR /go/src/app
+
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+COPY docker_build/start.sh start.sh
+COPY migrations migrations
 
 EXPOSE 8080
 
-CMD ["go", "run", "main.go"]
+ENTRYPOINT ["sh", "start.sh"]

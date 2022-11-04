@@ -1,6 +1,14 @@
 version: '3'
 
 services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db
+    ports:
+      - 5432:5432
   cfssl:
     build:
       context: ..
@@ -10,9 +18,12 @@ services:
     image: cfssl
     environment:
       - DB_DRIVER=postgres
-      - DB_URL=postgres://user:password@host/db
+      - DB_URL=postgres://user:password@db/db?sslmode=disable
+    depends_on:
+      - db
     volumes:
       - ~/Desktop/projects/mgw_local_certificates/ca_certs:/etc/certs
       - /home/hannes/Desktop/projects/mgw_local_certificates/certificate-authority/ca:/go/src/app/ca
     ports:
       - 8080:8080
+    #command: migrate

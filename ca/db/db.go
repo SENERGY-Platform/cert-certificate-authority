@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudflare/cfssl/certdb/dbconf"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func GetDB() (db *sqlx.DB, err error) {

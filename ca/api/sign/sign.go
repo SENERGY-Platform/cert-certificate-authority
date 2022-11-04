@@ -9,6 +9,8 @@ import (
 
 	"ca/api"
 
+	certdb "github.com/cloudflare/cfssl/certdb"
+
 	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/signer"
 	"github.com/cloudflare/cfssl/signer/universal"
@@ -16,12 +18,13 @@ import (
 
 type SignRequest struct {
 	Crt        string   `json: crt`
-	Expiration int      `json: expiration`
+	Expiration string   `json: expiration`
 	Hostnames  []string `json: hostnames`
 }
 
 type Handler struct {
-	signer signer.Signer
+	signer     signer.Signer
+	dbAccessor certdb.Accessor
 }
 
 func ParseRequestData(r *http.Request) (*SignRequest, error) {
@@ -76,6 +79,9 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	// Create the signing policy with the wanted expiration time
 	signProfile := config.DefaultConfig()
 	(*signProfile).ExpiryString = signRequest.Expiration
+	(*signProfile).Usage = []string{"client auth", "server auth"}
+	(*signProfile).OCSP = "TODO"
+
 	policy := config.Signing{
 		Profiles: nil,
 		Default:  signProfile,
@@ -88,6 +94,7 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	signMaker.SetDBAccessor(handler.dbAccessor)
 	handler.signer = signMaker
 	cert, err := handler.Sign(r, signRequest)
 	result := map[string]string{"certificate": string(*cert)}
@@ -96,9 +103,11 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	return api.SendResponse(w, result)
 }
 
-func NewHandler() http.Handler {
+func NewHandler(db certdb.Accessor) http.Handler {
 	return api.HTTPHandler{
-		Handler: &Handler{},
+		Handler: &Handler{
+			dbAccessor: db,
+		},
 		Methods: []string{"POST"},
 	}
 }
