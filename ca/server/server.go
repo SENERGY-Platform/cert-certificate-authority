@@ -12,17 +12,18 @@ import (
 
 	ocspApi "github.com/cloudflare/cfssl/api/ocsp"
 	"github.com/cloudflare/cfssl/api/revoke"
+
 	certsql "github.com/cloudflare/cfssl/certdb/sql"
 	"github.com/cloudflare/cfssl/ocsp"
 	"github.com/jmoiron/sqlx"
 )
 
-var endpoints = map[string]func(db *sqlx.DB) http.Handler{
+var endpoints = map[string]func(db *sqlx.DB) (http.Handler, error){
 	"/sign": func(db *sqlx.DB) (http.Handler, error) {
-		return sign.NewHandler(certsql.NewAccessor(db))
+		return sign.NewHandler(certsql.NewAccessor(db)), nil
 	},
 	"/revoke": func(db *sqlx.DB) (http.Handler, error) {
-		return revoke.NewHandler(certsql.NewAccessor(db))
+		return revoke.NewHandler(certsql.NewAccessor(db)), nil
 	},
 	"/ocsp": func(db *sqlx.DB) (http.Handler, error) {
 		ocspSigner, err := ocsp.NewSignerFromFile("/etc/certs/ca.crt", "/etc/certs/ca.crt", "/etc/certs/key.key", time.Duration(96))
@@ -31,16 +32,21 @@ var endpoints = map[string]func(db *sqlx.DB) http.Handler{
 			log.Printf("ERROR: %s", err)
 			return nil, err
 		}
-		return ocspApi.NewHandler(ocspSigner)
+		return ocspApi.NewHandler(ocspSigner), nil
 
 	},
 }
 
 func registerHandlers(db *sqlx.DB) {
 	for path, getHandler := range endpoints {
-		handler := getHandler(db)
-		log.Printf("endpoint '%s' is enabled", path)
-		http.Handle(path, handler)
+		handler, err := getHandler(db)
+		if err == nil {
+			log.Printf("endpoint '%s' is enabled", path)
+			http.Handle(path, handler)
+		} else {
+			log.Printf("endpoint '%s' is disabled: %s", path, err)
+		}
+
 	}
 }
 

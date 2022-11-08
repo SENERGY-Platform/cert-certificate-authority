@@ -6,10 +6,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
-	"ca/api"
+	"github.com/cloudflare/cfssl/api"
 
 	certdb "github.com/cloudflare/cfssl/certdb"
+	cfssl_errors "github.com/cloudflare/cfssl/errors"
 
 	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/signer"
@@ -18,13 +21,13 @@ import (
 
 type SignRequest struct {
 	Crt        string   `json: crt`
-	Expiration string   `json: expiration`
+	Expiration int      `json: expiration`
 	Hostnames  []string `json: hostnames`
 }
 
 type Handler struct {
-	signer     signer.Signer
-	dbAccessor certdb.Accessor
+	Signer     signer.Signer
+	DbAccessor certdb.Accessor
 }
 
 func ParseRequestData(r *http.Request) (*SignRequest, error) {
@@ -37,8 +40,15 @@ func ParseRequestData(r *http.Request) (*SignRequest, error) {
 	var signRequest SignRequest
 	err = json.Unmarshal(body, &signRequest)
 	if err != nil {
+		log.Printf("ERROR: could not parse sign request: %s", err)
 		return nil, errors.New("Unable to parse sign request")
 	}
+
+	if signRequest.Crt == "" {
+		log.Printf("ERROR: CSR missing")
+		return nil, errors.New("Unable to parse sign request: CRT is missing")
+	}
+
 	return &signRequest, nil
 }
 
@@ -55,9 +65,9 @@ func (h *Handler) Sign(r *http.Request, signRequest *SignRequest) (*[]byte, erro
 		Request: signRequest.Crt,
 	}
 
-	cert, err := h.signer.Sign(cfsslSignRequest)
+	cert, err := h.Signer.Sign(cfsslSignRequest)
 	if err != nil {
-		log.Println("failed to sign request: %v", err)
+		log.Printf("ERROR: failed to sign request: %v", err)
 		return nil, err
 	}
 
@@ -68,6 +78,10 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	log.Println("signature request received")
 
 	signRequest, err := ParseRequestData(r)
+	if err != nil {
+		log.Println("ERROR: could not parse request data")
+		return cfssl_errors.NewBadRequestString("Request parsing failed")
+	}
 
 	root := universal.Root{
 		Config: map[string]string{
@@ -77,36 +91,41 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// Create the signing policy with the wanted expiration time
-	signProfile := config.DefaultConfig()
-	(*signProfile).ExpiryString = signRequest.Expiration
-	(*signProfile).Usage = []string{"client auth", "server auth"}
-	(*signProfile).OCSP = "TODO"
+	expString := strconv.Itoa(signRequest.Expiration)
+	signProfile := config.SigningProfile{
+		Usage:        []string{"client auth", "server auth"},
+		Expiry:       time.Duration(signRequest.Expiration) * time.Hour,
+		ExpiryString: expString + "h",
+	}
 
 	policy := config.Signing{
 		Profiles: nil,
-		Default:  signProfile,
+		Default:  &signProfile,
 	}
 
 	// Create the signer
 	signMaker, err := universal.NewSigner(root, &policy)
 	if err != nil {
-		log.Println("setting up signer failed: %v", err)
-		return err
+		log.Printf("ERROR: setting up signer failed: %v", err)
+		return cfssl_errors.NewBadRequestString("Creation of Signer failed")
 	}
 
-	signMaker.SetDBAccessor(handler.dbAccessor)
-	handler.signer = signMaker
+	signMaker.SetDBAccessor(handler.DbAccessor)
+	handler.Signer = signMaker
 	cert, err := handler.Sign(r, signRequest)
+	if err != nil {
+		log.Printf("ERROR: cant sign request: %s", err)
+		return cfssl_errors.NewBadRequestString("Signing failed")
+	}
 	result := map[string]string{"certificate": string(*cert)}
 
-	log.Println("wrote response")
 	return api.SendResponse(w, result)
 }
 
 func NewHandler(db certdb.Accessor) http.Handler {
 	return api.HTTPHandler{
 		Handler: &Handler{
-			dbAccessor: db,
+			DbAccessor: db,
 		},
 		Methods: []string{"POST"},
 	}

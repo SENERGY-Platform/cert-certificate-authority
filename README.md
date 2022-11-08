@@ -1,3 +1,9 @@
+<div align="center">
+    <a href="https://github.com/SENERGY-Platform/cert-certificate-authority/actions/workflows/test.yml" rel="nofollow">
+        <img src="https://github.com/SENERGY-Platform/cert-certificate-authority/actions/workflows/test.yml/badge.svg" alt="Tests" />
+    </a>
+</div>
+
 # Revokation
 Use `/revoke` to revoke a certificate. The payload should contain the `serial` id in decimal format, the `authority_key_id` from the certificate and the revocation reason.
 

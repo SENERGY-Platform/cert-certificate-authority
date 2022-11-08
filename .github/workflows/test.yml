@@ -1,0 +1,13 @@
+name: Unittests
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the stack
+        run: docker compose -f ca/tests/docker-compose.yml build
+      - name: Start the stack
+        run: docker compose -f ca/tests/docker-compose.yml up -d db_test
+      - name: Run test container
+        run: docker compose -f ca/tests/docker-compose.yml run cfssl_test
