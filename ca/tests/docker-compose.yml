@@ -3,6 +3,7 @@ version: '3'
 services:
   db_test:
     image: postgres
+    container_name: db_test
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
