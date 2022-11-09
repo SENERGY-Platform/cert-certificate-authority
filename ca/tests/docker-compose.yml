@@ -24,6 +24,5 @@ services:
       - db_test
     volumes:
       - ~/Desktop/projects/mgw_local_certificates/ca_certs:/etc/certs
-      #- /home/hannes/Desktop/projects/mgw_local_certificates/certificate-authority/ca:/go/src/app/ca
     ports:
       - 8080:8080
