@@ -30,9 +30,10 @@ func decodeCertificate(certString string) (cert *x509.Certificate, err error) {
 	return
 }
 
-func encodeCertificateRequest(cert x509.Certificate) (certString string, err error) {
-	return
-}
+/*func encodeCertificateRequest(commonName string, hostnames []string) (certString string, err error) {
+	csr := x509.CertificateRequest{}
+
+}*/
 
 func createCertificateSigningRequest() {
 
