@@ -13,7 +13,7 @@ FROM alpine:latest AS prod
 WORKDIR /root
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
-COPY docker_build/start_prod.sh start.sh
+COPY build/start_prod.sh start.sh
 COPY migrations migrations
 
 COPY --from=builder /go/src/app/app .
@@ -30,7 +30,7 @@ WORKDIR /root
 COPY ca ca
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
-COPY docker_build/start_dev.sh start.sh
+COPY build/start_dev.sh start.sh
 COPY migrations migrations
 
 EXPOSE 8080
@@ -43,8 +43,11 @@ WORKDIR /root
 COPY ca ca
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
-COPY docker_build/start_test.sh start.sh
+COPY build/start_test.sh start.sh
 COPY migrations migrations
+
+# CA test certificates
+COPY build/certs /etc/certs
 
 EXPOSE 8080
 
