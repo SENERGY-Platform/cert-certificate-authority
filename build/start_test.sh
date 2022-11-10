@@ -1,3 +1,3 @@
-goose -dir migrations $DB_DRIVER $DB_URL up
+goose -dir migrations $DB_DRIVER "{$DB_DRIVER}://{$DB_USER}:{$DB_PASSWORD}@{$DB_ADDR}/{$DB_DATABASE}?sslmode=disable up"
 cd ca
 go test -v ./...

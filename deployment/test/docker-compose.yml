@@ -25,7 +25,10 @@ services:
     image: cfssl_test
     environment:
       - DB_DRIVER=postgres
-      - DB_URL=postgres://user:password@db_test/db?sslmode=disable
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
+      - DB_ADDR=db_test
+      - DB_DATABASE=db
     depends_on:
       db_test:
         condition: service_healthy

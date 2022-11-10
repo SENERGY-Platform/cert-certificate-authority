@@ -6,8 +6,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the stack
-        run: docker compose -f ca/tests/docker-compose.yml build
+        run: docker compose -f deployment/test/docker-compose.yml build
       - name: Start the stack
-        run: docker compose -f ca/tests/docker-compose.yml up -d db_test
+        run: docker compose -f deployment/test/docker-compose.yml up -d db_test
       - name: Run test container
-        run: docker compose -f ca/tests/docker-compose.yml run cfssl_test
+        run: docker compose -f deployment/test/docker-compose.yml run cfssl_test
