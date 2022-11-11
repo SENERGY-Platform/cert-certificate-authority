@@ -14,7 +14,8 @@ WORKDIR /root
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_prod.sh start.sh
-COPY migrations migrations
+COPY build/run_migrations.sh run_migrations.sh
+COPY ca/migrations migrations
 
 COPY --from=builder /go/src/app/app .
 COPY --from=builder /go/src/app/config.json .
@@ -22,7 +23,7 @@ COPY --from=builder /go/src/app/version.txt .
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "start.sh"]
+CMD ["sh", "start.sh"]
 
 FROM golang:1.18 AS dev
 WORKDIR /root
@@ -31,11 +32,11 @@ COPY ca ca
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_dev.sh start.sh
-COPY migrations migrations
+COPY build/run_migrations.sh run_migrations.sh
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "start.sh"]
+CMD ["sh", "start.sh"]
 
 FROM golang:1.18 AS test
 WORKDIR /root
@@ -44,11 +45,11 @@ COPY ca ca
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_test.sh start.sh
-COPY migrations migrations
+COPY build/run_migrations.sh run_migrations.sh
 
 # CA test certificates
 COPY build/certs /etc/certs
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "start.sh"]
+CMD ["sh", "start.sh"]

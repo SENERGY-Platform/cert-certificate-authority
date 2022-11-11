@@ -11,11 +11,11 @@ services:
       - 5432:5432
   cfssl:
     build:
-      context: ..
-      dockerfile: ./docker_build/Dockerfile
+      context: ../..
+      dockerfile: ./build/Dockerfile
       target: dev
-    container_name: cfssl
-    image: cfssl
+    container_name: ca
+    image: ca
     environment:
       - DB_DRIVER=postgres
       - DB_URL=postgres://user:password@db/db?sslmode=disable
@@ -26,4 +26,4 @@ services:
       #- /home/hannes/Desktop/projects/mgw_local_certificates/certificate-authority/ca:/go/src/app/ca
     ports:
       - 8080:8080
-    #command: migrate
+    command: migrate

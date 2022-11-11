@@ -1,9 +1,9 @@
-echo $@
-if [ $@ = "migrate" ]
+echo $1
+
+if [ $1 = "migrate" ]
 then
- goose -dir migrations $DB_DRIVER $DB_URL up
+ sh run_migrations.sh
+else
+ cd ca
+ go run main.go
 fi
-
-cd ca
-go run main.go
-
