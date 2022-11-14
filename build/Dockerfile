@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o app
 
 RUN git log -1 --oneline > version.txt
 
-FROM alpine:latest AS prod
+FROM golang:1.18 AS prod
 WORKDIR /root
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
