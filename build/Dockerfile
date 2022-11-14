@@ -25,18 +25,8 @@ EXPOSE 8080
 
 CMD ["sh", "start.sh"]
 
-FROM golang:1.18 AS dev
-WORKDIR /root
-
-COPY ca ca
-
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
-COPY build/start_dev.sh start.sh
-COPY build/run_migrations.sh run_migrations.sh
-
-EXPOSE 8080
-
-CMD ["sh", "start.sh"]
+FROM prod as dev
+ENV DEBUG=1
 
 FROM golang:1.18 AS test
 WORKDIR /root

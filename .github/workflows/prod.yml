@@ -1,4 +1,4 @@
-name: 'DEV Deployment'
+name: 'Prod Deployment'
 
 on:
   push:
@@ -35,10 +35,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            smartenergyplatform/certificates-certificate-authority:dev
-            ghcr.io/senergy-platform/certificates-certificate-authority:dev
+            smartenergyplatform/certificates-certificate-authority:prod
+            ghcr.io/senergy-platform/certificates-certificate-authority:prod
           target: prod
-      - name: Deploy
-        uses: wei/curl@v1
-        with:
-          args: -X POST -u ${{ secrets.RANCHER_TOKEN }} ${{ secrets.RANCHER_URL }}${{ secrets.RANCHER_SERVICE }}?action=redeploy
