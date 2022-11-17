@@ -15,7 +15,6 @@ RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_prod.sh start.sh
 COPY build/run_migrations.sh run_migrations.sh
 COPY migrations migrations
-RUN touch env
 
 COPY --from=builder /go/src/app/app .
 COPY --from=builder /go/src/app/version.txt .
@@ -34,7 +33,6 @@ COPY ca ca
 WORKDIR /root/ca 
 
 COPY migrations migrations 
-RUN touch tests/env 
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_test.sh start.sh

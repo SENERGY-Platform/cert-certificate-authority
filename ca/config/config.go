@@ -2,47 +2,62 @@ package config
 
 import (
 	"log"
+	"os"
+	"strconv"
 
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	ServerPort     int    `mapstructure: "SERVER_PORT"`
-	DBDriver       string `mapstructure: "DB_DRIVER"`
-	DBUser         string `mapstructure: "DB_USERNAME"`
-	DBDatabase     string `mapstructure: "DB_DATABASE"`
-	DBPassword     string `mapstructure: "DB_PASSWORD"`
-	DBAddr         string `mapstructure: "DB_ADDR"`
-	Debug          int    `mapstructure: "DEBUG"`
-	CACrtPath      string `mapstructure: "CA_CERT_PATH"`
-	PrivateKeyPath string `mapstructure: "PRIVATE_KEY_PATH"`
+	ServerPort     int
+	DBDriver       string
+	DBUser         string
+	DBDatabase     string
+	DBPassword     string
+	DBAddr         string
+	Debug          int
+	CACrtPath      string
+	PrivateKeyPath string
+}
+
+func getStringEnv(key string, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func getIntEnv(key string, fallback int) int {
+	if value, ok := os.LookupEnv(key); ok {
+		i, err := strconv.Atoi(value)
+		if err == nil {
+			return i
+		}
+	}
+	return fallback
 }
 
 func LoadConfig() (config Config, err error) {
-	viper.SetConfigType("env")
-	viper.SetConfigFile("env")
-
-	viper.AutomaticEnv()
-
-	viper.SetDefault("DBDriver", "postgres")
-	viper.SetDefault("DBUser", "user")
-	viper.SetDefault("DBPassword", "password")
-	viper.SetDefault("DBAddr", "db")
-	viper.SetDefault("DBDatabase", "db")
-	viper.SetDefault("Debug", 0)
-	viper.SetDefault("ServerPort", 8080)
-	viper.SetDefault("CACrtPath", "/etc/certs/ca.crt")
-	viper.SetDefault("PrivateKeyPath", "/etc/certs/key.key")
-
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
+	if _, fileErr := os.Stat(".env"); fileErr == nil {
+		err = godotenv.Load()
+		if err != nil {
+			log.Println("Error loading .env file")
+			return
+		}
 	}
 
-	err = viper.Unmarshal(&config)
-	if err != nil {
-		log.Printf("ERROR: cant read config file: %s", err)
+	config = Config{
+		DBDriver:       getStringEnv("DB_DRIVER", "postgres"),
+		DBUser:         getStringEnv("DB_USERNAME", "user"),
+		DBPassword:     getStringEnv("DB_PASSWORD", "password"),
+		DBAddr:         getStringEnv("DB_ADDR", "db"),
+		DBDatabase:     getStringEnv("DB_DATABASE", "db"),
+		Debug:          getIntEnv("DEBUG", 0),
+		ServerPort:     getIntEnv("SERVER_PORT", 8080),
+		CACrtPath:      getStringEnv("CA_CERT_PATH", "/etc/certs/ca.crt"),
+		PrivateKeyPath: getStringEnv("PRIVATE_KEY_PATH", "/etc/certs/key.key"),
 	}
+
 	log.Printf("Configuration: %+v\n", config)
 
 	return
