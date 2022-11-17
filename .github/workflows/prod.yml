@@ -3,7 +3,7 @@ name: 'Prod Deployment'
 on:
   push:
     branches:
-      - dev
+      - master
   workflow_dispatch:
 
 jobs:
