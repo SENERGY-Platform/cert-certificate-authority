@@ -62,7 +62,10 @@ func createCertificateSigningRequest(commonName string, hostnames []string) x509
 }
 
 func makeSignRequest(method string, body *string, username string) (*httptest.ResponseRecorder, error) {
-	configuration := config.LoadConfig()
+	configuration, err := config.LoadConfig()
+	if err != nil {
+		log.Printf("ERROR: cant load config: %s", err)
+	}
 
 	var request *http.Request
 	if method == http.MethodPost {
