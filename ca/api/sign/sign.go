@@ -9,12 +9,14 @@ import (
 	"strconv"
 	"time"
 
+	"ca/config"
+
 	"github.com/cloudflare/cfssl/api"
 
 	certdb "github.com/cloudflare/cfssl/certdb"
 	cfssl_errors "github.com/cloudflare/cfssl/errors"
 
-	"github.com/cloudflare/cfssl/config"
+	cfsslConfig "github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/signer"
 	"github.com/cloudflare/cfssl/signer/universal"
 )
@@ -26,8 +28,9 @@ type SignRequest struct {
 }
 
 type Handler struct {
-	Signer     signer.Signer
-	DbAccessor certdb.Accessor
+	Signer        signer.Signer
+	DbAccessor    certdb.Accessor
+	configuration config.Config
 }
 
 func ParseRequestData(r *http.Request) (*SignRequest, error) {
@@ -85,20 +88,20 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 
 	root := universal.Root{
 		Config: map[string]string{
-			"cert-file": "/etc/certs/ca.crt",
-			"key-file":  "/etc/certs/key.key",
+			"cert-file": handler.configuration.CACrtPath,
+			"key-file":  handler.configuration.PrivateKeyPath,
 		},
 	}
 
 	// Create the signing policy with the wanted expiration time
 	expString := strconv.Itoa(signRequest.Expiration)
-	signProfile := config.SigningProfile{
+	signProfile := cfsslConfig.SigningProfile{
 		Usage:        []string{"client auth", "server auth"},
 		Expiry:       time.Duration(signRequest.Expiration) * time.Hour,
 		ExpiryString: expString + "h",
 	}
 
-	policy := config.Signing{
+	policy := cfsslConfig.Signing{
 		Profiles: nil,
 		Default:  &signProfile,
 	}
@@ -122,10 +125,11 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	return api.SendResponse(w, result)
 }
 
-func NewHandler(db certdb.Accessor) http.Handler {
+func NewHandler(db certdb.Accessor, configuration config.Config) http.Handler {
 	return api.HTTPHandler{
 		Handler: &Handler{
-			DbAccessor: db,
+			DbAccessor:    db,
+			configuration: configuration,
 		},
 		Methods: []string{"POST"},
 	}
