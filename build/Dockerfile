@@ -29,8 +29,10 @@ ENV DEBUG=1
 
 FROM golang:1.18 AS test
 WORKDIR /root
-
 COPY ca ca
+
+WORKDIR /root/ca 
+
 COPY migrations migrations 
 RUN touch .env 
 

@@ -1,3 +1,2 @@
 sh run_migrations.sh 
-cd ca
 go test -v ./...
