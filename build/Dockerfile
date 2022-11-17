@@ -34,7 +34,7 @@ COPY ca ca
 WORKDIR /root/ca 
 
 COPY migrations migrations 
-RUN touch env 
+RUN touch tests/env 
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_test.sh start.sh
