@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"ca/api/sign"
+	"ca/config"
 	"ca/db"
 	"crypto/rand"
 	"crypto/rsa"
@@ -17,8 +18,8 @@ import (
 	certsql "github.com/cloudflare/cfssl/certdb/sql"
 )
 
-func getTestDB() (acc *certsql.Accessor, err error) {
-	db, err := db.GetDB()
+func getTestDB(configuration config.Config) (acc *certsql.Accessor, err error) {
+	db, err := db.GetDB(configuration)
 	if err != nil {
 		log.Printf("ERROR: can not connect to DB: %s", err)
 		return
@@ -61,6 +62,8 @@ func createCertificateSigningRequest(commonName string, hostnames []string) x509
 }
 
 func makeSignRequest(method string, body *string, username string) (*httptest.ResponseRecorder, error) {
+	configuration := config.LoadConfig()
+
 	var request *http.Request
 	if method == http.MethodPost {
 		request = httptest.NewRequest(method, "/sign", strings.NewReader(*body))
@@ -71,12 +74,12 @@ func makeSignRequest(method string, body *string, username string) (*httptest.Re
 
 	responseRecorder := httptest.NewRecorder()
 
-	db, err := getTestDB()
+	db, err := getTestDB(configuration)
 	if err != nil {
 		return nil, err
 	}
 
-	signHandler := sign.NewHandler(db)
+	signHandler := sign.NewHandler(db, configuration)
 
 	signHandler.ServeHTTP(responseRecorder, request)
 	return responseRecorder, nil
