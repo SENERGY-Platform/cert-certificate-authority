@@ -31,7 +31,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, time.Duration(96))
 
 		if err != nil {
-			log.Errorf("ERROR: %s", err)
+			log.Errorf("cant setup ocsp signer: %s", err)
 			return nil, err
 		}
 		return ocspApi.NewHandler(ocspSigner), nil

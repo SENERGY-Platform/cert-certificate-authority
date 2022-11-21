@@ -1,9 +1,10 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strconv"
+
+	"github.com/cloudflare/cfssl/log"
 
 	"github.com/joho/godotenv"
 )
@@ -41,7 +42,7 @@ func LoadConfig() (config Config, err error) {
 	if _, fileErr := os.Stat(".env"); fileErr == nil {
 		err = godotenv.Load()
 		if err != nil {
-			log.Println("Error loading .env file")
+			log.Errorf("cant load .env file: %s", err)
 			return
 		}
 	}
@@ -58,7 +59,7 @@ func LoadConfig() (config Config, err error) {
 		PrivateKeyPath: getStringEnv("PRIVATE_KEY_PATH", "/etc/certs/key.key"),
 	}
 
-	log.Printf("Configuration: %+v\n", config)
+	log.Infof("Configuration: %+v\n", config)
 
 	return
 }
