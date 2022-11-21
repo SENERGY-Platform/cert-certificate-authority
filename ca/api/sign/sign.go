@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/cloudflare/cfssl/log"
 
 	"ca/config"
 
@@ -40,15 +41,17 @@ func ParseRequestData(r *http.Request) (*SignRequest, error) {
 	}
 	r.Body.Close()
 
+	log.Debugf("Sign Request Data: %s", body)
+
 	var signRequest SignRequest
 	err = json.Unmarshal(body, &signRequest)
 	if err != nil {
-		log.Printf("ERROR: could not parse sign request: %s", err)
+		log.Errorf("ERROR: could not parse sign request: %s", err)
 		return nil, errors.New("Unable to parse sign request")
 	}
 
 	if signRequest.Crt == "" {
-		log.Printf("ERROR: CSR missing")
+		log.Errorf("ERROR: CSR missing")
 		return nil, errors.New("Unable to parse sign request: CRT is missing")
 	}
 
@@ -70,7 +73,7 @@ func (h *Handler) Sign(r *http.Request, signRequest *SignRequest) (*[]byte, erro
 
 	cert, err := h.Signer.Sign(cfsslSignRequest)
 	if err != nil {
-		log.Printf("ERROR: failed to sign request: %v", err)
+		log.Errorf("ERROR: failed to sign request: %v", err)
 		return nil, err
 	}
 
@@ -78,11 +81,11 @@ func (h *Handler) Sign(r *http.Request, signRequest *SignRequest) (*[]byte, erro
 }
 
 func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
-	log.Println("signature request received")
+	log.Info("Signature request received")
 
 	signRequest, err := ParseRequestData(r)
 	if err != nil {
-		log.Println("ERROR: could not parse request data")
+		log.Errorf("ERROR: could not parse request data")
 		return cfssl_errors.NewBadRequestString("Request parsing failed")
 	}
 
@@ -109,7 +112,7 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	// Create the signer
 	signMaker, err := universal.NewSigner(root, &policy)
 	if err != nil {
-		log.Printf("ERROR: setting up signer failed: %v", err)
+		log.Errorf("ERROR: setting up signer failed: %v", err)
 		return cfssl_errors.NewBadRequestString("Creation of Signer failed")
 	}
 
@@ -117,7 +120,7 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	handler.Signer = signMaker
 	cert, err := handler.Sign(r, signRequest)
 	if err != nil {
-		log.Printf("ERROR: cant sign request: %s", err)
+		log.Errorf("ERROR: cant sign request: %s", err)
 		return cfssl_errors.NewBadRequestString("Signing failed")
 	}
 	result := map[string]string{"certificate": string(*cert)}

@@ -3,10 +3,11 @@ package server
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/cloudflare/cfssl/log"
 
 	"ca/api/sign"
 	"ca/config"
@@ -30,7 +31,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, time.Duration(96))
 
 		if err != nil {
-			log.Printf("ERROR: %s", err)
+			log.Errorf("ERROR: %s", err)
 			return nil, err
 		}
 		return ocspApi.NewHandler(ocspSigner), nil
@@ -52,15 +53,15 @@ func registerHandlers(db *sqlx.DB, configuration config.Config) error {
 func StartServer(db *sqlx.DB, configuration config.Config) {
 	err := registerHandlers(db, configuration)
 	if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
+		fmt.Errorf("error starting server: %s\n", err)
 		os.Exit(1)
 	}
 
 	err = http.ListenAndServe(":8080", nil)
 	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server closed\n")
+		log.Errorf("server closed\n")
 	} else if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
+		log.Errorf("error starting server: %s\n", err)
 		os.Exit(1)
 	}
 }
