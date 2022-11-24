@@ -2,7 +2,6 @@ package test
 
 import (
 	"bytes"
-	"ca/api/sign"
 	"ca/config"
 	"ca/db"
 	"crypto/rand"
@@ -11,12 +10,25 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"log"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 
 	certsql "github.com/cloudflare/cfssl/certdb/sql"
 )
+
+type ResponseMessage struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type CertificateResult struct {
+	Certificate string `json:"certificate"`
+}
+
+type Response struct {
+	Success  bool              `json:"success"`
+	Result   CertificateResult `json:"result"`
+	Errors   []ResponseMessage `json:"errors"`
+	Messages []ResponseMessage `json:"messages"`
+}
 
 func getTestDB(configuration config.Config) (acc *certsql.Accessor, err error) {
 	db, err := db.GetDB(configuration)
@@ -59,31 +71,4 @@ func createCertificateSigningRequest(commonName string, hostnames []string) x509
 		SignatureAlgorithm: x509.SHA256WithRSA,
 	}
 	return template
-}
-
-func makeSignRequest(method string, body *string, username string) (*httptest.ResponseRecorder, error) {
-	configuration, err := config.LoadConfig()
-	if err != nil {
-		log.Printf("ERROR: cant load config: %s", err)
-	}
-
-	var request *http.Request
-	if method == http.MethodPost {
-		request = httptest.NewRequest(method, "/sign", strings.NewReader(*body))
-	} else {
-		request = httptest.NewRequest(method, "/sign", nil)
-	}
-	request.Header.Set("X-User", username)
-
-	responseRecorder := httptest.NewRecorder()
-
-	db, err := getTestDB(configuration)
-	if err != nil {
-		return nil, err
-	}
-
-	signHandler := sign.NewHandler(db, configuration)
-
-	signHandler.ServeHTTP(responseRecorder, request)
-	return responseRecorder, nil
 }
