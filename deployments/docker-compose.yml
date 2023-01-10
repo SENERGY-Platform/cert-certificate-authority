@@ -17,7 +17,7 @@ services:
 
   cfssl:
     build:
-      context: ../..
+      context: ..
       dockerfile: ./build/Dockerfile
       target: dev
     container_name: ca
@@ -32,7 +32,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ~/Desktop/projects/mgw_local_certificates/ca_certs:/etc/certs
+      - ./ca_certs:/etc/certs
     ports:
       - 8080:8080
     command: sh /root/start.sh migrate_and_start

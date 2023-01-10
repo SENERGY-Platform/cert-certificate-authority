@@ -5,7 +5,7 @@ COPY . /go/src/app
 WORKDIR /go/src/app
 RUN git log -1 --oneline > version.txt
 
-WORKDIR /go/src/app/ca
+WORKDIR /go/src/app/cmd
 RUN CGO_ENABLED=0 GOOS=linux go build -o ../app
 
 FROM golang:1.18 AS prod
@@ -28,11 +28,7 @@ ENV DEBUG=1
 
 FROM golang:1.18 AS test
 WORKDIR /root
-COPY ca ca
-
-WORKDIR /root/ca 
-
-COPY migrations migrations 
+COPY . .
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY build/start_test.sh start.sh

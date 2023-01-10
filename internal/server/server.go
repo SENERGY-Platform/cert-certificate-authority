@@ -9,8 +9,8 @@ import (
 
 	"github.com/cloudflare/cfssl/log"
 
-	"ca/api/sign"
-	"ca/config"
+	"ca/internal/api/sign"
+	"ca/internal/config"
 
 	ocspApi "github.com/cloudflare/cfssl/api/ocsp"
 	"github.com/cloudflare/cfssl/api/revoke"

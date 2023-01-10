@@ -1,7 +1,7 @@
 package db
 
 import (
-	"ca/config"
+	"ca/internal/config"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"

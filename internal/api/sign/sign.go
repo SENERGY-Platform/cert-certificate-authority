@@ -10,7 +10,7 @@ import (
 
 	"github.com/cloudflare/cfssl/log"
 
-	"ca/config"
+	"ca/internal/config"
 
 	"github.com/cloudflare/cfssl/api"
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"ca/config"
-	"ca/db"
-	"ca/server"
+	"ca/internal/config"
+	"ca/internal/db"
+	"ca/internal/server"
 	"log"
 
 	cfssl_log "github.com/cloudflare/cfssl/log"
