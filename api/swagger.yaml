@@ -1,0 +1,53 @@
+basePath: /v2
+definitions:
+  sign.Result:
+    properties:
+      certifcate:
+        type: string
+    type: object
+  sign.SignRequest:
+    properties:
+      crt:
+        example: sd
+        type: string
+      expiration:
+        example: 24
+        type: integer
+      hostnames:
+        example:
+        - localhost
+        items:
+          type: string
+        type: array
+    type: object
+host: petstore.swagger.io
+info:
+  contact: {}
+  description: This is a private certificate authority that builds on top of CFSSL
+  title: Certificate Authority
+  version: "1.0"
+paths:
+  /sign:
+    post:
+      consumes:
+      - application/json
+      description: The provided certificate will be signed with the root CA certificate.
+        The expiration time in hours will be used for the certificate expiration.
+        The hostnames will be used for the subject alternative name field. The User
+        ID will be used in the common name field.
+      parameters:
+      - description: Request payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/sign.SignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sign.Result'
+      summary: Sign a Certificate Signing Request
+swagger: "2.0"

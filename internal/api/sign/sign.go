@@ -23,9 +23,13 @@ import (
 )
 
 type SignRequest struct {
-	Crt        string   `json: crt`
-	Expiration int      `json: expiration`
-	Hostnames  []string `json: hostnames`
+	Crt        string   `json:"crt" example:"sd"`
+	Expiration int      `json:"expiration" example:"24"`
+	Hostnames  []string `json:"hostnames" example:"localhost"`
+}
+
+type Result struct {
+	Certifcate string `json: certificate`
 }
 
 type Handler struct {
@@ -80,6 +84,14 @@ func (h *Handler) Sign(r *http.Request, signRequest *SignRequest) (*[]byte, erro
 	return &cert, nil
 }
 
+// ShowAccount godoc
+// @Summary      Sign a Certificate Signing Request
+// @Description	 The provided certificate will be signed with the root CA certificate. The expiration time in hours will be used for the certificate expiration. The hostnames will be used for the subject alternative name field. The User ID will be used in the common name field.
+// @Accept       json
+// @Produce      json
+// @Param        payload  body     SignRequest     true "Request payload"
+// @Success      200 {object} Result
+// @Router       /sign [post]
 func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	log.Info("Signature request received")
 

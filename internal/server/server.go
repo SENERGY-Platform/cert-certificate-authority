@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/cloudflare/cfssl/log"
+	// @Param        payload  body     SignRequest     true "Request payload"
 
+	"ca/internal/api/doc"
 	"ca/internal/api/sign"
 	"ca/internal/config"
 
@@ -21,6 +23,9 @@ import (
 )
 
 var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.Handler, error){
+	"/doc": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
+		return doc.NewHandler(certsql.NewAccessor(db), configuration), nil
+	},
 	"/sign": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
 		return sign.NewHandler(certsql.NewAccessor(db), configuration), nil
 	},
