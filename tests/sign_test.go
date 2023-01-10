@@ -1,8 +1,8 @@
 package test
 
 import (
-	"ca/api/sign"
-	"ca/config"
+	"ca/internal/api/sign"
+	"ca/internal/config"
 	"encoding/json"
 	"log"
 	"net/http"

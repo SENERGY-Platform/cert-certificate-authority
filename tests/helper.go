@@ -2,8 +2,8 @@ package test
 
 import (
 	"bytes"
-	"ca/config"
-	"ca/db"
+	"ca/internal/config"
+	"ca/internal/db"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
