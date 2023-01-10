@@ -59,7 +59,7 @@ func ParseRequestData(r *http.Request) (*SignRequest, error) {
 }
 
 func (h *Handler) Sign(r *http.Request, signRequest *SignRequest) (*[]byte, error) {
-	userName := r.Header.Get("X-User")
+	userName := r.Header.Get("X-UserId")
 	sub := signer.Subject{
 		CN: userName,
 	}

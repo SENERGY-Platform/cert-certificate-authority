@@ -26,7 +26,7 @@ func makeSignRequest(method string, body *string, username string) (*httptest.Re
 	} else {
 		request = httptest.NewRequest(method, "/sign", nil)
 	}
-	request.Header.Set("X-User", username)
+	request.Header.Set("X-UserId", username)
 
 	responseRecorder := httptest.NewRecorder()
 
