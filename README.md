@@ -30,6 +30,3 @@ OCSP can be used to check the revocation status of the certificate.
   "status": "good"
 }
 ```
-
-## OpenAPI generation
-`swag init -g  -o api`
