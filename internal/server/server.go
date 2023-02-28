@@ -10,9 +10,9 @@ import (
 	"github.com/cloudflare/cfssl/log"
 	// @Param        payload  body     SignRequest     true "Request payload"
 
-	"ca/internal/api/doc"
-	"ca/internal/api/sign"
-	"ca/internal/config"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/doc"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/sign"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 
 	ocspApi "github.com/cloudflare/cfssl/api/ocsp"
 	"github.com/cloudflare/cfssl/api/revoke"

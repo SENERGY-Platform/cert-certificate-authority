@@ -1,24 +1,25 @@
-package test
+package sign
 
 import (
-	"ca/internal/api/sign"
-	"ca/internal/config"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/db"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/model"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/utils"
+
+	certsql "github.com/cloudflare/cfssl/certdb/sql"
 )
 
 // "-----BEGIN CERTIFICATE REQUEST-----\n\nMIIEhTCCAm0CAQAwQDELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUx\n\nDDAKBgNVBAoMA29yZzEOMAwGA1UEAwwFYWRtaW4wggIiMA0GCSqGSIb3DQEBAQUA\n\nA4ICDwAwggIKAoICAQDFFWFSwXq5D5f12/Mw18rFuFq+21nNm//fv4SXayec9wa/\n\nlA/Gc/oYSbL0xMCrGWc4/99hogSp4XeIytJHUl44pFTcHdexn6908Vb6GxN7Kswm\n\nuAFmmaOu1LYruEZAhZjAZUn9VyQTACkUqHUHEI3p+jzl7QL0wO1MgPgi9Egy6bIR\n\nvrPQA/ea6Dv4KF/XfPDXoOCkivGbTpu05mdzW7Ap+jtwD+52HG3okwJB/eJWyX4F\n\nsPvjrE+eOy6vNVxRwauw1omrW6IGPqGwNd+g7R2PQj6tyaOFQ1qs9powrjb17abo\n\nv5wOwhVKjkfQOhunO+GQ8puLROHdyrz2Hudebjj4ToVNBR1pbjLJQmhh9YqEOxod\n\nofD4FMzGbKwa8LGCRSMriaCfA1DL2ATY8I48PsdM0UykfkOro1F/LpzumrkUek6t\n\nO0CKrOa1IrFlOsPBw5xkbTKabbVvPuzfaY28TVZUJEcv16m/V4p2l33pg2p0xpvg\n\nqt6l4/cwwunDtKWweP0ONcM6pSg97V2MhJUwAC+eUgTOxc63yqFeK8dEgGP8GR87\n\nQfr2mRW/zrY1hgnLL78/LK5HNj8SkzQEZAVJ6hGrc1XilSfHy9z3PluU2P9bUjuM\n\nbz86DID/QppNTr5t7Q+gQ8Ho+GtbUrtkuPaE8W9I6eLqE5VbCKOkAC4JFglEBQID\n\nAQABoAAwDQYJKoZIhvcNAQELBQADggIBAC6pxAIHNFGe5qT4WvqzaY9bhkO27qWL\n\neOeYammnM63RjGpSAzPyreqaAq4zf0bdnfJ0WrGd+MV75oyVsTAxqaVMrWHy5c13\n\nQcIwccvqp/7Pzo//UVKVtxajU3xDDdjaB+Ng8TxAjSDS3hmwUlcQkVuNPbTatG9t\n\nKZQYX0g7Wm2im1l6NwJG9EczjT11VJkLqhbsHx22m20C1O3X2JZy9xxx+Gsi9b2f\n\n7GQAQ/m7313w/AuN/AMkrnO19iPCD9zcDlsvjDm6m72gADVht+XPkvZ9+T3GmdZv\n\nbyD/ZpgnuEMhccz5+6Uri3LcBwGou7r0R+hDLAI29YZm/zY7uNDP8twnbKsrJkp7\n\niHZvMyTVL++tpAGv2Ztpw6QO48gsJhRitD88atvMn7PzGvpnMZ4K3h1JioUyvF6V\n\nBvdlDDt00XA71dUa2S8Wwi9AbBH0nJ5q8f5r1w9leeT4bMPCnSPAbKs+VF5dCInk\n\nP32dgc0C0hzWvrod4fzgcGU/JE5uCGTEktf+AGh4EPUhwKGRNh78Qts85nVVAPLy\n\n9YJIIOdTcktye1j2glr7wc6f3grTgB0JwKQzRHDDHDIkC1pexawUcDTo8+RP5F5T\n\nDEwdgmXavwJXFPSE1dZbBowX4QKXfDGvDckZg2336SUoTS1KzZNS8o2nL0pYNVKo\n\nfjgZ6fnblEXr\n\n-----END CERTIFICATE REQUEST-----",
 
 func makeSignRequest(method string, body *string, username string) (*httptest.ResponseRecorder, error) {
-	configuration, err := config.LoadConfig()
-	if err != nil {
-		log.Printf("ERROR: cant load config: %s", err)
-	}
+	configuration := config.GetTestConfig()
 
 	var request *http.Request
 	if method == http.MethodPost {
@@ -30,12 +31,14 @@ func makeSignRequest(method string, body *string, username string) (*httptest.Re
 
 	responseRecorder := httptest.NewRecorder()
 
-	db, err := getTestDB(configuration)
+	//db, err := db.GetMockDB(configuration)
+	dbConnection, err := db.GetDB(configuration)
 	if err != nil {
 		return nil, err
 	}
+	acc := certsql.NewAccessor(dbConnection)
 
-	signHandler := sign.NewHandler(db, configuration)
+	signHandler := NewHandler(acc, configuration)
 
 	signHandler.ServeHTTP(responseRecorder, request)
 	return responseRecorder, nil
@@ -68,9 +71,9 @@ func TestSigningCertificates(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			crt, err := encodeCertificateRequest(tc.crtCN, []string{"admin.de"})
+			crt, err := utils.EncodeCertificateRequest(tc.crtCN, []string{"admin.de"})
 
-			data := sign.SignRequest{
+			data := model.SignRequest{
 				Crt:        crt,
 				Expiration: tc.expiration,
 				Hostnames:  tc.hostnames,
@@ -91,7 +94,7 @@ func TestSigningCertificates(t *testing.T) {
 				t.Errorf("Want status '%d', got '%d'", http.StatusOK, responseRecorder.Code)
 			}
 
-			var response Response
+			var response model.Response
 			err = json.Unmarshal([]byte(responseRecorder.Body.String()), &response)
 			if err != nil {
 				t.Errorf("cant unmarshal response")
@@ -101,7 +104,7 @@ func TestSigningCertificates(t *testing.T) {
 				t.Errorf("expected success")
 			}
 
-			parsedCert, err := decodeCertificate(response.Result.Certificate)
+			parsedCert, err := utils.DecodeCertificate(response.Result.Certificate)
 			if err != nil {
 				t.Errorf("Could not decode certificate")
 			}
@@ -131,7 +134,7 @@ func TestSigningMessages(t *testing.T) {
 	tt := []struct {
 		name       string
 		method     string
-		data       *sign.SignRequest
+		data       *model.SignRequest
 		want       string
 		statusCode int
 	}{
@@ -145,7 +148,7 @@ func TestSigningMessages(t *testing.T) {
 		{
 			name:   "missing crt",
 			method: http.MethodPost,
-			data: &sign.SignRequest{
+			data: &model.SignRequest{
 				Crt:        "",
 				Expiration: 24,
 				Hostnames:  []string{"localhost"},

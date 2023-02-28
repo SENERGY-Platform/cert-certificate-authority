@@ -36,7 +36,7 @@ COPY build/start_test.sh start.sh
 COPY build/run_migrations.sh run_migrations.sh
 
 # CA test certificates
-COPY build/certs /etc/certs
+COPY tests/certs /etc/certs
 
 EXPOSE 8080
 

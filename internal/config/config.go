@@ -63,3 +63,18 @@ func LoadConfig() (config Config, err error) {
 
 	return
 }
+
+func GetTestConfig() (config Config) {
+	config = Config{
+		DBDriver:       getStringEnv("DB_DRIVER", "postgres"),
+		DBUser:         getStringEnv("DB_USERNAME", "user"),
+		DBPassword:     getStringEnv("DB_PASSWORD", "password"),
+		DBAddr:         getStringEnv("DB_ADDR", "db"),
+		DBDatabase:     getStringEnv("DB_DATABASE", "db"),
+		Debug:          getIntEnv("DEBUG", 0),
+		ServerPort:     getIntEnv("SERVER_PORT", 8080),
+		CACrtPath:      getStringEnv("CA_CERT_PATH", "/home/hannes/certs/ca.crt"),
+		PrivateKeyPath: getStringEnv("PRIVATE_KEY_PATH", "/home/hannes/certs/key.key"),
+	}
+	return
+}

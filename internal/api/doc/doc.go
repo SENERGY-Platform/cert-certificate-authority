@@ -7,7 +7,7 @@ import (
 	certdb "github.com/cloudflare/cfssl/certdb"
 	"github.com/cloudflare/cfssl/log"
 
-	"ca/internal/config"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 )
 
 type Handler struct {

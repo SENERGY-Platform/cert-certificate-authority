@@ -1,4 +1,4 @@
-module ca
+module github.com/SENERGY-Platform/cert-certificate-authority
 
 go 1.18
 
@@ -10,6 +10,7 @@ require (
 
 require (
 	cloud.google.com/go v0.104.0 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect

@@ -1,10 +1,13 @@
 package main
 
 import (
-	"ca/internal/config"
-	"ca/internal/db"
-	"ca/internal/server"
 	"log"
+
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/server"
+
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/db"
+
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 
 	cfssl_log "github.com/cloudflare/cfssl/log"
 )

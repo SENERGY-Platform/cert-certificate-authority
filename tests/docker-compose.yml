@@ -29,6 +29,8 @@ services:
       - DB_PASSWORD=password
       - DB_ADDR=db_test
       - DB_DATABASE=db
+      - CA_CERT_PATH=/etc/certs/ca.crt
+      - PRIVATE_KEY_PATH=/etc/certs/key.key
     depends_on:
       db_test:
         condition: service_healthy
