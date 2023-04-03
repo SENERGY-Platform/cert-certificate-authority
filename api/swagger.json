@@ -6,8 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "petstore.swagger.io",
-    "basePath": "/v2",
+    "host": "api.dev.senergy.infai.org:8000",
     "paths": {
         "/sign": {
             "post": {
@@ -26,7 +25,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/sign.SignRequest"
+                            "$ref": "#/definitions/model.SignRequest"
                         }
                     }
                 ],
@@ -42,15 +41,7 @@
         }
     },
     "definitions": {
-        "sign.Result": {
-            "type": "object",
-            "properties": {
-                "certifcate": {
-                    "type": "string"
-                }
-            }
-        },
-        "sign.SignRequest": {
+        "model.SignRequest": {
             "type": "object",
             "properties": {
                 "crt": {
@@ -69,6 +60,14 @@
                     "example": [
                         "localhost"
                     ]
+                }
+            }
+        },
+        "sign.Result": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "type": "string"
                 }
             }
         }

@@ -1,11 +1,5 @@
-basePath: /v2
 definitions:
-  sign.Result:
-    properties:
-      certifcate:
-        type: string
-    type: object
-  sign.SignRequest:
+  model.SignRequest:
     properties:
       crt:
         example: sd
@@ -20,7 +14,12 @@ definitions:
           type: string
         type: array
     type: object
-host: petstore.swagger.io
+  sign.Result:
+    properties:
+      certificate:
+        type: string
+    type: object
+host: api.dev.senergy.infai.org:8000
 info:
   contact: {}
   description: This is a private certificate authority that builds on top of CFSSL
@@ -41,7 +40,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/sign.SignRequest'
+          $ref: '#/definitions/model.SignRequest'
       produces:
       - application/json
       responses:

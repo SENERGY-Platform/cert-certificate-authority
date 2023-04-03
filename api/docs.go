@@ -33,7 +33,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/sign.SignRequest"
+                            "$ref": "#/definitions/model.SignRequest"
                         }
                     }
                 ],
@@ -49,15 +49,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "sign.Result": {
-            "type": "object",
-            "properties": {
-                "certifcate": {
-                    "type": "string"
-                }
-            }
-        },
-        "sign.SignRequest": {
+        "model.SignRequest": {
             "type": "object",
             "properties": {
                 "crt": {
@@ -78,6 +70,14 @@ const docTemplate = `{
                     ]
                 }
             }
+        },
+        "sign.Result": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -85,8 +85,8 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "petstore.swagger.io",
-	BasePath:         "/v2",
+	Host:             "api.dev.senergy.infai.org:8000",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Certificate Authority",
 	Description:      "This is a private certificate authority that builds on top of CFSSL",

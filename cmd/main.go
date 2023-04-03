@@ -16,8 +16,8 @@ import (
 // @version 1.0
 // @description This is a private certificate authority that builds on top of CFSSL
 
-// @host petstore.swagger.io
-// @BasePath /v2
+// @host api.dev.senergy.infai.org:8000
+// @BasePath
 func main() {
 	config, err := config.LoadConfig()
 	if err != nil {

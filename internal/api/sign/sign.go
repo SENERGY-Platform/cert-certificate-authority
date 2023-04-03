@@ -23,6 +23,11 @@ type Handler struct {
 	configuration config.Config
 }
 
+// Only needed for swagger generation
+type Result struct {
+	Certifcate string `json:"certificate"`
+}
+
 func ParseRequestData(r *http.Request) (*model.SignRequest, error) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -52,7 +57,7 @@ func ParseRequestData(r *http.Request) (*model.SignRequest, error) {
 // @Description	 The provided certificate will be signed with the root CA certificate. The expiration time in hours will be used for the certificate expiration. The hostnames will be used for the subject alternative name field. The User ID will be used in the common name field.
 // @Accept       json
 // @Produce      json
-// @Param        payload  body     SignRequest     true "Request payload"
+// @Param        payload  body     model.SignRequest     true "Request payload"
 // @Success      200 {object} Result
 // @Router       /sign [post]
 func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
@@ -65,8 +70,6 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	userName := r.Header.Get("X-UserId")
-
-	//handler.Signer = signMaker
 
 	cert, err := core.Sign(userName, signRequest, handler.configuration, handler.DbAccessor)
 	if err != nil {
