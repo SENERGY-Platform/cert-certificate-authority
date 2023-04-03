@@ -6,7 +6,6 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "api.dev.senergy.infai.org:8000",
     "paths": {
         "/sign": {
             "post": {
