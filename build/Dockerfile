@@ -1,4 +1,4 @@
-FROM golang:1.18 AS builder
+FROM golang:1.21 AS builder
 ENV GO111MODULE=on
 
 COPY . /go/src/app
@@ -8,7 +8,7 @@ RUN git log -1 --oneline > version.txt
 WORKDIR /go/src/app/cmd
 RUN CGO_ENABLED=0 GOOS=linux go build -o ../app
 
-FROM golang:1.18 AS prod
+FROM golang:1.21 AS prod
 WORKDIR /root
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
@@ -27,7 +27,7 @@ CMD ["sh", "start.sh"]
 FROM prod as dev
 ENV DEBUG=1
 
-FROM golang:1.18 AS test
+FROM golang:1.21 AS test
 WORKDIR /root
 COPY . .
 
