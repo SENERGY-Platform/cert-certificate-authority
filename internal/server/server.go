@@ -33,7 +33,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 		return revoke.NewHandler(certsql.NewAccessor(db)), nil
 	},
 	"/ocsp": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
-		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, time.Duration(96))
+		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 1*time.Minute)
 
 		if err != nil {
 			log.Errorf("cant setup ocsp signer: %s", err)
