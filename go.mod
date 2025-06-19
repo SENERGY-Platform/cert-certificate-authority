@@ -1,6 +1,6 @@
 module github.com/SENERGY-Platform/cert-certificate-authority
 
-go 1.21
+go 1.24
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.1
