@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/cloudflare/cfssl/log"
 	// @Param        payload  body     SignRequest     true "Request payload"
@@ -14,13 +13,17 @@ import (
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/sign"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 
-	ocspApi "github.com/cloudflare/cfssl/api/ocsp"
 	"github.com/cloudflare/cfssl/api/revoke"
 
 	certsql "github.com/cloudflare/cfssl/certdb/sql"
 	"github.com/cloudflare/cfssl/ocsp"
 	"github.com/jmoiron/sqlx"
+	cryptoocsp "golang.org/x/crypto/ocsp"
 )
+
+type NilStats struct{}
+
+func (_ *NilStats) ResponseStatus(cryptoocsp.ResponseStatus) {}
 
 var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.Handler, error){
 	"/doc": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
@@ -33,14 +36,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 		return revoke.NewHandler(certsql.NewAccessor(db)), nil
 	},
 	"/ocsp": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
-		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 1*time.Minute)
-
-		if err != nil {
-			log.Errorf("cant setup ocsp signer: %s", err)
-			return nil, err
-		}
-		return ocspApi.NewHandler(ocspSigner), nil
-
+		return ocsp.NewResponder(ocsp.NewDBSource(certsql.NewAccessor(db)), &NilStats{}), nil
 	},
 }
 

@@ -24,7 +24,7 @@ EXPOSE 8080
 
 CMD ["sh", "start.sh"]
 
-FROM prod as dev
+FROM prod AS dev
 ENV DEBUG=1
 
 FROM golang:1.24 AS test
