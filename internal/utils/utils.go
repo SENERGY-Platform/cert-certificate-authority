@@ -15,29 +15,17 @@ func DecodeCertificate(certString string) (cert *x509.Certificate, err error) {
 	return
 }
 
-func EncodeCertificateRequest(commonName string, hostnames []string) (certString string, err error) {
-	csr := CreateCertificateSigningRequest(commonName, hostnames)
-	keyBytes, _ := rsa.GenerateKey(rand.Reader, 1024)
-	csrBytes, _ := x509.CreateCertificateRequest(rand.Reader, &csr, keyBytes)
+func EncodeCertificateRequest(privateKey *rsa.PrivateKey, subj pkix.Name) (certString string, err error) {
+	csr := x509.CertificateRequest{
+		Subject:            subj,
+		SignatureAlgorithm: x509.SHA256WithRSA,
+	}
+	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, &csr, privateKey)
+	if err != nil {
+		return "", err
+	}
 	var PublicKeyRow bytes.Buffer
 	pem.Encode(&PublicKeyRow, &pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrBytes})
 	certString = PublicKeyRow.String()
 	return
-}
-
-func CreateCertificateSigningRequest(commonName string, hostnames []string) x509.CertificateRequest {
-	subj := pkix.Name{
-		CommonName:         commonName,
-		Country:            []string{"AU"},
-		Province:           []string{"Some-State"},
-		Locality:           []string{"MyCity"},
-		Organization:       []string{"Company Ltd"},
-		OrganizationalUnit: []string{"IT"},
-	}
-
-	template := x509.CertificateRequest{
-		Subject:            subj,
-		SignatureAlgorithm: x509.SHA256WithRSA,
-	}
-	return template
 }

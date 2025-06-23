@@ -12,29 +12,20 @@ services:
       - 5432:5432
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      
-  cfssl_test:
-    build:
-      context: ..
-      dockerfile: ./build/Dockerfile
-      target: test
-    container_name: cfssl_test
-    image: cfssl_test
+      interval: 1s
+      timeout: 2s
+      retries: 50
+  db_init:
+    image: gomicro/goose
     environment:
-      - DB_DRIVER=postgres
-      - DB_USERNAME=user
-      - DB_PASSWORD=password
-      - DB_ADDR=db_test
-      - DB_DATABASE=db
-      - CA_CERT_PATH=/etc/certs/ca.crt
-      - PRIVATE_KEY_PATH=/etc/certs/key.key
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=db
+    volumes:
+      - ../migrations:/migrations
+    command: ["goose", "-dir", "/migrations", "postgres", "postgres://user:password@db_test/db?sslmode=disable", "up"]
     depends_on:
       db_test:
-        condition: service_healthy
-    ports:
-      - 8080:8080
-    volumes:
-      - /tmp:/coverage
+         condition: service_healthy
+
+    

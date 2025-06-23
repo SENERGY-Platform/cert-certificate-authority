@@ -12,8 +12,8 @@ type OCSP struct {
 }
 
 type SignRequest struct {
-	Crt        string   `json:"crt" example:"sd"`
-	Expiration int      `json:"expiration" example:"24"`
+	Csr        string   `json:"csr" example:"sd"`
+	Expiration string   `json:"expiration" example:"24h"`
 	Hostnames  []string `json:"hostnames" example:"localhost"`
 }
 
@@ -24,22 +24,4 @@ type ResponseMessage struct {
 
 type CertificateResult struct {
 	Certificate string `json:"certificate"`
-}
-
-type Response struct {
-	Success  bool              `json:"success"`
-	Result   CertificateResult `json:"result"`
-	Errors   []ResponseMessage `json:"errors"`
-	Messages []ResponseMessage `json:"messages"`
-}
-
-type OCSPResult struct {
-	OCSPResponse string `json:"ocspResponse"`
-}
-
-type OCSPResponse struct {
-	Success  bool              `json:"success"`
-	Result   OCSPResult        `json:"result"`
-	Errors   []ResponseMessage `json:"errors"`
-	Messages []ResponseMessage `json:"messages"`
 }

@@ -1,19 +1,20 @@
 package server
 
 import (
+	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/cloudflare/cfssl/log"
-	// @Param        payload  body     SignRequest     true "Request payload"
 
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/ca"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/doc"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/revoke"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/sign"
-	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 
-	"github.com/cloudflare/cfssl/api/revoke"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 
 	certsql "github.com/cloudflare/cfssl/certdb/sql"
 	"github.com/cloudflare/cfssl/ocsp"
@@ -30,13 +31,32 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 		return doc.NewHandler(certsql.NewAccessor(db), configuration), nil
 	},
 	"/sign": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
-		return sign.NewHandler(certsql.NewAccessor(db), configuration), nil
+		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 2*configuration.OCSPCycle)
+		if err != nil {
+			log.Errorf("cant setup ocsp signer: %s", err)
+			return nil, err
+		}
+		return sign.NewHandler(certsql.NewAccessor(db), configuration, ocspSigner), nil
 	},
 	"/revoke": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
-		return revoke.NewHandler(certsql.NewAccessor(db)), nil
+		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 2*configuration.OCSPCycle)
+		if err != nil {
+			log.Errorf("cant setup ocsp signer: %s", err)
+			return nil, err
+		}
+		return revoke.NewOCSPHandler(certsql.NewAccessor(db), ocspSigner), nil
 	},
 	"/ocsp": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
 		return ocsp.NewResponder(ocsp.NewDBSource(certsql.NewAccessor(db)), &NilStats{}), nil
+	},
+	"/ca": func(_ *sqlx.DB, configuration config.Config) (http.Handler, error) {
+		content, err := os.ReadFile(configuration.CACrtPath)
+		if err != nil {
+			log.Errorf("cant read CA file: %s", err)
+			return nil, err
+		}
+		return ca.NewHandler(content), nil
+
 	},
 }
 
@@ -51,14 +71,33 @@ func registerHandlers(db *sqlx.DB, configuration config.Config) error {
 	return nil
 }
 
-func StartServer(db *sqlx.DB, configuration config.Config) {
-	err := registerHandlers(db, configuration)
+func StartServer(ctx context.Context, db *sqlx.DB, configuration config.Config) {
+	err := startOCSPRefresh(db, configuration)
 	if err != nil {
-		fmt.Errorf("error starting server: %s\n", err)
+		log.Errorf("can not StartOCSPRefresh: %s", err)
 		os.Exit(1)
 	}
 
-	err = http.ListenAndServe(":8080", nil)
+	err = registerHandlers(db, configuration)
+	if err != nil {
+		log.Errorf("error starting server: %s\n", err)
+		os.Exit(1)
+	}
+
+	srv := &http.Server{Addr: ":8080"}
+
+	go func() {
+		<-ctx.Done()
+		ctx2, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err = srv.Shutdown(ctx2)
+		if err != nil {
+			log.Errorf("Error shutting down server: %v", err)
+		}
+	}()
+
+	err = srv.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Errorf("server closed\n")
 	} else if err != nil {

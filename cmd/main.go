@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/server"
@@ -27,6 +28,6 @@ func main() {
 		cfssl_log.Errorf("can not connect to DB: %s", err)
 		return
 	}
-	server.StartServer(dbConnection, config)
+	server.StartServer(context.Background(), dbConnection, config)
 
 }
