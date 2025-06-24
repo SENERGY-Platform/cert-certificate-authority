@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/utils"
 	"github.com/cloudflare/cfssl/api"
 	"github.com/cloudflare/cfssl/certdb"
 	"github.com/cloudflare/cfssl/errors"
@@ -67,6 +68,14 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	reasonCode, err = ocsp.ReasonStringToCode(req.Reason)
 	if err != nil {
 		return errors.NewBadRequestString("Invalid reason code")
+	}
+
+	userId := utils.GetUserId(r)
+	certs, err := h.dbAccessor.GetCertificate(req.Serial, req.AKI)
+	for _, cert := range certs {
+		if cert.CommonName.String != userId {
+			return errors.NewBadRequestString("Certificate does not belong to you")
+		}
 	}
 
 	err = h.dbAccessor.RevokeCertificate(req.Serial, req.AKI, reasonCode)

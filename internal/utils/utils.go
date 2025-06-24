@@ -7,6 +7,8 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"github.com/cloudflare/cfssl/log"
+	"net/http"
 )
 
 func DecodeCertificate(certString string) (cert *x509.Certificate, err error) {
@@ -28,4 +30,13 @@ func EncodeCertificateRequest(privateKey *rsa.PrivateKey, subj pkix.Name) (certS
 	pem.Encode(&PublicKeyRow, &pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrBytes})
 	certString = PublicKeyRow.String()
 	return
+}
+
+func GetUserId(r *http.Request) string {
+	userId := r.Header.Get("X-UserId")
+	if userId == "" {
+		userId = "testUser"
+		log.Warningf("No header X-UserId set. Assuming test environment. Setting username to %v", userId)
+	}
+	return userId
 }

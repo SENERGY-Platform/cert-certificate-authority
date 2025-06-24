@@ -12,10 +12,12 @@ import (
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/core"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/model"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/utils"
 
 	"github.com/cloudflare/cfssl/api"
 
 	_ "crypto/x509"
+
 	certdb "github.com/cloudflare/cfssl/certdb"
 	cfssl_errors "github.com/cloudflare/cfssl/errors"
 )
@@ -72,13 +74,9 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 		return cfssl_errors.NewBadRequestString("Request parsing failed")
 	}
 
-	userName := r.Header.Get("X-UserId")
-	if userName == "" {
-		userName = "testUser"
-		log.Warningf("No header X-UserId set. Assuming test environment. Setting username to %v", userName)
-	}
+	userId := utils.GetUserId(r)
 
-	cert, err := core.Sign(userName, signRequest, handler.configuration, handler.DbAccessor, handler.signer)
+	cert, err := core.Sign(userId, signRequest, handler.configuration, handler.DbAccessor, handler.signer)
 	if err != nil {
 		log.Errorf("cant sign request: %s", err)
 		return cfssl_errors.NewBadRequestString("Signing failed")

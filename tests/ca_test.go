@@ -37,9 +37,9 @@ func TestCertificates(t *testing.T) {
 	// config.OCSPCycle = time.Second
 	config.SignbackDuration = time.Second
 	config.DBDatabase = "db"
+	config.DBAddr = "127.0.0.1:8081"
 	config.DBPassword = "password"
 	config.DBUser = "user"
-	config.DBAddr = "localhost"
 	config.CACrtPath = "../tests/certs/ca.crt"
 	config.PrivateKeyPath = "../tests/certs/key.key"
 
