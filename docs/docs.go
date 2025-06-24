@@ -29,6 +29,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/list": {
+            "get": {
+                "description": "Lists all certificates of the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Lists all certificates of the user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/list.CertificateInfo"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/revoke": {
             "post": {
                 "description": "Revokes a certificate",
@@ -92,6 +115,38 @@ const docTemplate = `{
     "definitions": {
         "big.Int": {
             "type": "object"
+        },
+        "list.CertificateInfo": {
+            "type": "object",
+            "properties": {
+                "authority_key_identifier": {
+                    "type": "string"
+                },
+                "expiry": {
+                    "type": "string"
+                },
+                "issued_at": {
+                    "type": "string"
+                },
+                "not_before": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "integer"
+                },
+                "revoked_at": {
+                    "type": "string"
+                },
+                "sans": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serial_number": {
+                    "type": "string"
+                }
+            }
         },
         "model.SignRequest": {
             "type": "object",

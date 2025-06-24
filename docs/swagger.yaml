@@ -1,6 +1,27 @@
 definitions:
   big.Int:
     type: object
+  list.CertificateInfo:
+    properties:
+      authority_key_identifier:
+        type: string
+      expiry:
+        type: string
+      issued_at:
+        type: string
+      not_before:
+        type: string
+      reason:
+        type: integer
+      revoked_at:
+        type: string
+      sans:
+        items:
+          type: string
+        type: array
+      serial_number:
+        type: string
+    type: object
   model.SignRequest:
     properties:
       csr:
@@ -489,6 +510,21 @@ paths:
         "200":
           description: OK
       summary: Gets the CA public certificate
+  /list:
+    get:
+      consumes:
+      - application/json
+      description: Lists all certificates of the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/list.CertificateInfo'
+            type: array
+      summary: Lists all certificates of the user
   /revoke:
     post:
       consumes:
