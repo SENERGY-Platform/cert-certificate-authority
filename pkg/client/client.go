@@ -32,7 +32,7 @@ func NewClient(baseUrl string) (client Client) {
 }
 
 func (c *RealClient) NewCertAndKey(subj pkix.Name, hostnames []string, expiration time.Duration, token *string) (privateKey *rsa.PrivateKey, cert *x509.Certificate, errCode int, err error) {
-	privateKey, err = rsa.GenerateKey(rand.Reader, 1024)
+	privateKey, err = rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return nil, nil, http.StatusInternalServerError, err
 	}
