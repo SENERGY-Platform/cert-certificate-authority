@@ -11,6 +11,7 @@ import (
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/ca"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/doc"
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/list"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/revoke"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/sign"
 
@@ -56,7 +57,9 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 			return nil, err
 		}
 		return ca.NewHandler(content), nil
-
+	},
+	"/list": func(db *sqlx.DB, _ config.Config) (http.Handler, error) {
+		return list.NewHandler(db), nil
 	},
 }
 
