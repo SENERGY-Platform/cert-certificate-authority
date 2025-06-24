@@ -34,7 +34,6 @@ func TestCertificates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// config.OCSPCycle = time.Second
 	config.SignbackDuration = time.Second
 	config.DBDatabase = "db"
 	config.DBAddr = "127.0.0.1:8081"
@@ -62,7 +61,7 @@ func TestCertificates(t *testing.T) {
 		{
 			name:       "valid csr - short expiration",
 			crtCN:      "admin",
-			expiration: 2 * time.Minute,
+			expiration: time.Hour,
 			hostnames:  []string{"localhost"},
 		},
 		{

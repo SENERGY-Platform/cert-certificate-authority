@@ -34,6 +34,10 @@ func Sign(userName string, signRequest *model.SignRequest, configuration config.
 	if err != nil {
 		return nil, cfssl_errors.NewBadRequestString(fmt.Sprintf("Unable to parse expiration %v", err))
 	}
+	if d > time.Hour*24*365 || d < time.Hour {
+		return nil, cfssl_errors.NewBadRequestString("Illegal expiration! Should be between 1 hour and 1 year")
+	}
+
 	signProfile := cfsslConfig.SigningProfile{
 		Usage:    []string{"client auth", "server auth"},
 		Expiry:   d,
