@@ -22,6 +22,7 @@ type Config struct {
 	PrivateKeyPath   string
 	OCSPCycle        time.Duration
 	SignbackDuration time.Duration
+	RevokeWehbook    string
 }
 
 func getStringEnv(key string, fallback string) string {
@@ -71,6 +72,7 @@ func LoadConfig() (config Config, err error) {
 		ServerPort:       getIntEnv("SERVER_PORT", 8080),
 		CACrtPath:        getStringEnv("CA_CERT_PATH", "/etc/certs/ca.crt"),
 		PrivateKeyPath:   getStringEnv("PRIVATE_KEY_PATH", "/etc/certs/key.key"),
+		RevokeWehbook:    getStringEnv("REVOKE_WEBHOOK", ""),
 		OCSPCycle:        ocspCycle,
 		SignbackDuration: signbackDuration,
 	}
