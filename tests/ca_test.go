@@ -111,6 +111,10 @@ func TestCertificates(t *testing.T) {
 
 			code, err = client.Revoke(cert, "Superseded", nil)
 			assertCodeErr(t, code, err)
+			code, err = client.Revoke(cert, "Superseded", nil)
+			if err == nil && code == http.StatusOK {
+				t.Errorf("Was able to revoke cert twice")
+			}
 			expired, ocspResp, code, err = client.GetStatus(cert, nil)
 			if expired {
 				t.Errorf("Cert status unexpectedly expired.")

@@ -72,9 +72,15 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 
 	userId := utils.GetUserId(r)
 	certs, err := h.dbAccessor.GetCertificate(req.Serial, req.AKI)
+	if err != nil {
+		return err
+	}
 	for _, cert := range certs {
 		if cert.CommonName.String != userId {
 			return errors.NewBadRequestString("Certificate does not belong to you")
+		}
+		if !cert.RevokedAt.Equal(time.Time{}) {
+			return errors.NewBadRequestString("Certificate already revoked")
 		}
 	}
 
