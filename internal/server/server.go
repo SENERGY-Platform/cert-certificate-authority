@@ -14,6 +14,7 @@ import (
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/list"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/revoke"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/sign"
+	"github.com/cloudflare/cfssl/api/crl"
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 
@@ -60,6 +61,9 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 	},
 	"/list": func(db *sqlx.DB, _ config.Config) (http.Handler, error) {
 		return list.NewHandler(db), nil
+	},
+	"/crl": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
+		return crl.NewHandler(certsql.NewAccessor(db), configuration.CACrtPath, configuration.PrivateKeyPath)
 	},
 }
 
