@@ -43,15 +43,15 @@ func NewHandler(db *sqlx.DB) http.Handler {
 }
 
 type CertificateInfo struct {
-	SerialNumber           string    `json:"serial_number" db:"serial_number"`
-	AuthorityKeyIdentifier string    `json:"authority_key_identifier" db:"authority_key_identifier"`
-	SANs                   []string  `json:"sans" db:"-"`
-	SANsUint               []byte    `json:"-" db:"sans"`
-	IssuedAt               time.Time `json:"issued_at" db:"issued_at"`
-	NotBefore              time.Time `json:"not_before" db:"not_before"`
-	Expiry                 time.Time `json:"expiry" db:"expiry"`
-	RevokedAt              time.Time `json:"revoked_at" db:"revoked_at"`
-	Reason                 int       `json:"reason" db:"reason"`
+	SerialNumber           string                 `json:"serial_number" db:"serial_number"`
+	AuthorityKeyIdentifier string                 `json:"authority_key_identifier" db:"authority_key_identifier"`
+	Metadata               map[string]interface{} `json:"metadata" db:"-"`
+	MetadataUint           []byte                 `json:"-" db:"metadata"`
+	IssuedAt               time.Time              `json:"issued_at" db:"issued_at"`
+	NotBefore              time.Time              `json:"not_before" db:"not_before"`
+	Expiry                 time.Time              `json:"expiry" db:"expiry"`
+	RevokedAt              time.Time              `json:"revoked_at" db:"revoked_at"`
+	Reason                 int                    `json:"reason" db:"reason"`
 }
 
 // List godoc
@@ -64,7 +64,7 @@ type CertificateInfo struct {
 func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 	resp := []CertificateInfo{}
 	userId := utils.GetUserId(r)
-	rows, err := h.db.Queryx(fmt.Sprintf("SELECT serial_number, authority_key_identifier, sans, issued_at, not_before, expiry, revoked_at, reason FROM certificates WHERE common_name = '%s';", userId))
+	rows, err := h.db.Queryx(fmt.Sprintf("SELECT serial_number, authority_key_identifier, metadata, issued_at, not_before, expiry, revoked_at, reason FROM certificates WHERE common_name = '%s';", userId))
 	if err != nil {
 		return &errors.Error{
 			ErrorCode: http.StatusInternalServerError,
@@ -80,7 +80,7 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 				Message:   err.Error(),
 			}
 		}
-		err = json.Unmarshal(info.SANsUint, &info.SANs)
+		err = json.Unmarshal(info.MetadataUint, &info.Metadata)
 		if err != nil {
 			return &errors.Error{
 				ErrorCode: http.StatusInternalServerError,

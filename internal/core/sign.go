@@ -80,9 +80,10 @@ func Sign(userName string, signRequest *model.SignRequest, configuration config.
 
 	// Create the sign request, override SAN field with hostnames
 	cfsslSignRequest := signer.SignRequest{
-		Hosts:   signRequest.Hostnames,
-		Subject: &sub,
-		Request: signRequest.Csr,
+		Hosts:    signRequest.Hostnames,
+		Subject:  &sub,
+		Request:  signRequest.Csr,
+		Metadata: map[string]interface{}{"Hostnames": signRequest.Hostnames},
 	}
 
 	cert, err := signMaker.Sign(cfsslSignRequest)
