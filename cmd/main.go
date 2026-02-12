@@ -20,6 +20,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/notifier"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/server"
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/db"
@@ -44,6 +45,12 @@ func main() {
 		cfssl_log.Errorf("can not connect to DB: %s", err)
 		return
 	}
-	server.StartServer(context.Background(), dbConnection, config)
+	ctx := context.Background()
+	err = notifier.StartNotifier(ctx, dbConnection, config)
+	if err != nil {
+		log.Printf("[ERROR] can not start notifier: %s", err) // TODO: add struct logging
+		return
+	}
+	server.StartServer(ctx, dbConnection, config)
 
 }

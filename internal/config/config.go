@@ -39,6 +39,7 @@ type Config struct {
 	OCSPCycle        time.Duration
 	SignbackDuration time.Duration
 	RevokeWehbook    string
+	NotifierUrl      string
 }
 
 func getStringEnv(key string, fallback string) string {
@@ -89,6 +90,7 @@ func LoadConfig() (config Config, err error) {
 		CACrtPath:        getStringEnv("CA_CERT_PATH", "/etc/certs/ca.crt"),
 		PrivateKeyPath:   getStringEnv("PRIVATE_KEY_PATH", "/etc/certs/key.key"),
 		RevokeWehbook:    getStringEnv("REVOKE_WEBHOOK", ""),
+		NotifierUrl:      getStringEnv("NOTIFIER_URL", "http://api.notifier:5000"),
 		OCSPCycle:        ocspCycle,
 		SignbackDuration: signbackDuration,
 	}
