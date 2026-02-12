@@ -30,7 +30,6 @@ import (
 	"github.com/cloudflare/cfssl/certdb"
 	cfsslConfig "github.com/cloudflare/cfssl/config"
 	cfssl_errors "github.com/cloudflare/cfssl/errors"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/ocsp"
 	"github.com/cloudflare/cfssl/signer"
 	"github.com/cloudflare/cfssl/signer/universal"
@@ -68,7 +67,7 @@ func Sign(userName string, signRequest *model.SignRequest, configuration config.
 	// Create the signer
 	signMaker, err := universal.NewSigner(root, &policy)
 	if err != nil {
-		log.Errorf("setting up signer failed: %v", err)
+		configuration.GetLogger().Error(fmt.Sprintf("setting up signer failed: %v", err))
 		return nil, cfssl_errors.NewBadRequestString("Creation of Signer failed")
 	}
 
@@ -88,14 +87,14 @@ func Sign(userName string, signRequest *model.SignRequest, configuration config.
 
 	cert, err := signMaker.Sign(cfsslSignRequest)
 	if err != nil {
-		log.Errorf("failed to sign request: %v", err)
+		configuration.GetLogger().Error(fmt.Sprintf("failed to sign request: %v", err))
 		return nil, err
 	}
 
 	block, _ := pem.Decode(cert)
 	xCert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		log.Errorf("failed to parse cert: %v", err)
+		configuration.GetLogger().Error(fmt.Sprintf("failed to parse cert: %v", err))
 		return nil, err
 	}
 	now := time.Now()

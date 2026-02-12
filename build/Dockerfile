@@ -1,4 +1,4 @@
-FROM golang:1.24 AS builder
+FROM golang:1.25 AS builder
 ENV GO111MODULE=on
 
 COPY . /go/src/app
@@ -9,7 +9,7 @@ WORKDIR /go/src/app/cmd
 RUN go generate ./...
 RUN CGO_ENABLED=0 GOOS=linux go build -o ../app
 
-FROM golang:1.24 AS prod
+FROM golang:1.25 AS prod
 WORKDIR /root
 
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest

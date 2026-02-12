@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/notifier"
@@ -26,8 +27,6 @@ import (
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/db"
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
-
-	cfssl_log "github.com/cloudflare/cfssl/log"
 )
 
 // @title Certificate Authority
@@ -39,16 +38,15 @@ func main() {
 		log.Printf("[ERROR] can not read config: %s", err)
 		return
 	}
-	cfssl_log.Level = cfssl_log.LevelDebug
 	dbConnection, err := db.GetDB(config)
 	if err != nil {
-		cfssl_log.Errorf("can not connect to DB: %s", err)
+		config.GetLogger().Error(fmt.Sprintf("can not connect to DB: %s", err))
 		return
 	}
 	ctx := context.Background()
 	err = notifier.StartNotifier(ctx, dbConnection, config)
 	if err != nil {
-		log.Printf("[ERROR] can not start notifier: %s", err) // TODO: add struct logging
+		config.GetLogger().Error(fmt.Sprintf("[ERROR] can not start notifier: %s", err))
 		return
 	}
 	server.StartServer(ctx, dbConnection, config)

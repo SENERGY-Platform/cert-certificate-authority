@@ -20,9 +20,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log/slog"
 	"net/http"
 
-	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/ocsp"
 
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
@@ -49,24 +49,24 @@ type Result struct {
 	Certifcate string `json:"certificate"`
 }
 
-func ParseRequestData(r *http.Request) (*model.SignRequest, error) {
+func ParseRequestData(r *http.Request, logger *slog.Logger) (*model.SignRequest, error) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
 	r.Body.Close()
 
-	log.Debugf("Sign Request Data: %s", body)
+	logger.Debug("Sign Request Data", "data", string(body))
 
 	var signRequest model.SignRequest
 	err = json.Unmarshal(body, &signRequest)
 	if err != nil {
-		log.Errorf("could not parse sign request: %s", err)
+		logger.Error("could not parse sign request", "error", err)
 		return nil, errors.New("Unable to parse sign request")
 	}
 
 	if signRequest.Csr == "" {
-		log.Errorf("CSR missing")
+		logger.Error("CSR missing")
 		return nil, errors.New("Unable to parse sign request: CRT is missing")
 	}
 
@@ -82,11 +82,11 @@ func ParseRequestData(r *http.Request) (*model.SignRequest, error) {
 // @Success      200 {object} x509.Certificate
 // @Router       /sign [post]
 func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
-	log.Info("Signature request received")
+	handler.configuration.GetLogger().Info("Signature request received")
 
-	signRequest, err := ParseRequestData(r)
+	signRequest, err := ParseRequestData(r, handler.configuration.GetLogger())
 	if err != nil {
-		log.Errorf("could not parse request data")
+		handler.configuration.GetLogger().Error("could not parse request data")
 		return cfssl_errors.NewBadRequestString("Request parsing failed")
 	}
 
@@ -94,7 +94,7 @@ func (handler *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 
 	cert, err := core.Sign(userId, signRequest, handler.configuration, handler.DbAccessor, handler.signer)
 	if err != nil {
-		log.Errorf("cant sign request: %s", err)
+		handler.configuration.GetLogger().Error("could not sign certificate", "error", err)
 		return cfssl_errors.NewBadRequestString("Signing failed")
 	}
 	_, err = w.Write(*cert)

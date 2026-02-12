@@ -19,6 +19,7 @@ package revoke
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -29,7 +30,6 @@ import (
 	"github.com/cloudflare/cfssl/certdb"
 	"github.com/cloudflare/cfssl/errors"
 	"github.com/cloudflare/cfssl/helpers"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/ocsp"
 	stdocsp "golang.org/x/crypto/ocsp"
 )
@@ -121,21 +121,21 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) error {
 			}
 			body, err := json.Marshal(&content)
 			if err != nil {
-				log.Warningf("Could not marshal RevokeWebhookBody: %v", err)
+				h.config.GetLogger().Warn(fmt.Sprintf("Could not marshal RevokeWebhookBody: %v", err))
 				return
 			}
 			resp, err := http.DefaultClient.Post(h.config.RevokeWehbook, "application/json; charset=utf-8", bytes.NewBuffer(body))
 			if err != nil {
-				log.Warningf("Error invoking revoke webhook: %v", err)
+				h.config.GetLogger().Error(fmt.Sprintf("Error invoking revoke webhook: %v", err))
 				return
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusOK {
 				body, err := io.ReadAll(resp.Body)
 				if err != nil {
-					log.Warningf("Revoke webhook unable to read response body (Code %v): %v", resp.StatusCode)
+					h.config.GetLogger().Warn(fmt.Sprintf("Revoke webhook unable to read response body (Code %v): %v", resp.StatusCode, err))
 				} else {
-					log.Warningf("Revoke webhook received non OK response: %v (Code %v)", string(body), resp.StatusCode)
+					h.config.GetLogger().Warn(fmt.Sprintf("Revoke webhook received non OK response: %v (Code %v)", string(body), resp.StatusCode))
 				}
 			}
 		}()

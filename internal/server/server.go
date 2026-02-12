@@ -23,8 +23,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
-
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/ca"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/doc"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/api/list"
@@ -51,7 +49,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 	"/sign": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
 		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 2*configuration.OCSPCycle)
 		if err != nil {
-			log.Errorf("cant setup ocsp signer: %s", err)
+			configuration.GetLogger().Error("cant setup ocsp signer", "error", err)
 			return nil, err
 		}
 		return sign.NewHandler(certsql.NewAccessor(db), configuration, ocspSigner), nil
@@ -59,7 +57,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 	"/revoke": func(db *sqlx.DB, configuration config.Config) (http.Handler, error) {
 		ocspSigner, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 2*configuration.OCSPCycle)
 		if err != nil {
-			log.Errorf("cant setup ocsp signer: %s", err)
+			configuration.GetLogger().Error("cant setup ocsp signer", "error", err)
 			return nil, err
 		}
 		return revoke.NewOCSPHandler(certsql.NewAccessor(db), ocspSigner, configuration), nil
@@ -70,7 +68,7 @@ var endpoints = map[string]func(db *sqlx.DB, configuration config.Config) (http.
 	"/ca": func(_ *sqlx.DB, configuration config.Config) (http.Handler, error) {
 		content, err := os.ReadFile(configuration.CACrtPath)
 		if err != nil {
-			log.Errorf("cant read CA file: %s", err)
+			configuration.GetLogger().Error("cant read CA file", "error", err)
 			return nil, err
 		}
 		return ca.NewHandler(content), nil
@@ -97,13 +95,13 @@ func registerHandlers(db *sqlx.DB, configuration config.Config) error {
 func StartServer(ctx context.Context, db *sqlx.DB, configuration config.Config) {
 	err := startOCSPRefresh(db, configuration)
 	if err != nil {
-		log.Errorf("can not StartOCSPRefresh: %s", err)
+		configuration.GetLogger().Error("can not StartOCSPRefresh", "error", err)
 		os.Exit(1)
 	}
 
 	err = registerHandlers(db, configuration)
 	if err != nil {
-		log.Errorf("error starting server: %s\n", err)
+		configuration.GetLogger().Error("error starting server", "error", err)
 		os.Exit(1)
 	}
 
@@ -116,15 +114,15 @@ func StartServer(ctx context.Context, db *sqlx.DB, configuration config.Config) 
 
 		err = srv.Shutdown(ctx2)
 		if err != nil {
-			log.Errorf("Error shutting down server: %v", err)
+			configuration.GetLogger().Error("Error shutting down server", "error", err)
 		}
 	}()
 
 	err = srv.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
-		log.Errorf("server closed\n")
+		configuration.GetLogger().Info("server closed")
 	} else if err != nil {
-		log.Errorf("error starting server: %s\n", err)
+		configuration.GetLogger().Error("error starting server", "error", err)
 		os.Exit(1)
 	}
 }

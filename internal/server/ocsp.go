@@ -23,7 +23,6 @@ import (
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/config"
 	certsql "github.com/cloudflare/cfssl/certdb/sql"
 	"github.com/cloudflare/cfssl/helpers"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/ocsp"
 	"github.com/jmoiron/sqlx"
 )
@@ -32,7 +31,7 @@ func startOCSPRefresh(db *sqlx.DB, configuration config.Config) error {
 	dbAccessor := certsql.NewAccessor(db)
 	signer, err := ocsp.NewSignerFromFile(configuration.CACrtPath, configuration.CACrtPath, configuration.PrivateKeyPath, 2*configuration.OCSPCycle)
 	if err != nil {
-		log.Errorf("cant setup ocsp signer: %s", err)
+		configuration.GetLogger().Error("cant setup ocsp signer", "error", err)
 		return err
 	}
 	go func() {
@@ -40,7 +39,7 @@ func startOCSPRefresh(db *sqlx.DB, configuration config.Config) error {
 		ocspRefresh := func() {
 			certs, err := dbAccessor.GetUnexpiredCertificates()
 			if err != nil {
-				log.Critical("Unable to GetUnexpiredCertificates: ", err)
+				configuration.GetLogger().Error("Unable to GetUnexpiredCertificates", "error", err)
 				return
 			}
 
@@ -49,7 +48,7 @@ func startOCSPRefresh(db *sqlx.DB, configuration config.Config) error {
 			for _, certRecord := range certs {
 				cert, err := helpers.ParseCertificatePEM([]byte(certRecord.PEM))
 				if err != nil {
-					log.Critical("Unable to parse certificate: ", err)
+					configuration.GetLogger().Error("Unable to parse certificate", "error", err)
 					continue
 				}
 
@@ -65,13 +64,13 @@ func startOCSPRefresh(db *sqlx.DB, configuration config.Config) error {
 
 				resp, err := signer.Sign(req)
 				if err != nil {
-					log.Critical("Unable to sign OCSP response: ", err)
+					configuration.GetLogger().Error("Unable to sign OCSP response", "error", err)
 					continue
 				}
 
 				err = dbAccessor.UpsertOCSP(cert.SerialNumber.String(), hex.EncodeToString(cert.AuthorityKeyId), string(resp), ocspExpiry)
 				if err != nil {
-					log.Critical("Unable to save OCSP response: ", err)
+					configuration.GetLogger().Error("Unable to save OCSP response", "error", err)
 					continue
 				}
 			}
