@@ -31,21 +31,22 @@ import (
 )
 
 type Config struct {
-	ServerPort       int
-	DBDriver         string
-	DBUser           string
-	DBDatabase       string
-	DBPassword       string
-	DBAddr           string
-	Debug            int
-	CACrtPath        string
-	PrivateKeyPath   string
-	OCSPCycle        time.Duration
-	SignbackDuration time.Duration
-	RevokeWehbook    string
-	NotifierUrl      string
-	logger           *slog.Logger
-	LogLevel         string
+	ServerPort              int
+	DBDriver                string
+	DBUser                  string
+	DBDatabase              string
+	DBPassword              string
+	DBAddr                  string
+	Debug                   int
+	CACrtPath               string
+	PrivateKeyPath          string
+	OCSPCycle               time.Duration
+	SignbackDuration        time.Duration
+	DeleteExpiredCertsAfter time.Duration
+	RevokeWehbook           string
+	NotifierUrl             string
+	logger                  *slog.Logger
+	LogLevel                string
 }
 
 func getStringEnv(key string, fallback string) string {
@@ -85,21 +86,29 @@ func LoadConfig() (config Config, err error) {
 		return
 	}
 
+	// certificates are deleted once they have been expired for this long, default 365 days
+	deleteExpiredCertsAfter, err := time.ParseDuration(getStringEnv("DELETE_EXPIRED_CERTS_AFTER", "8760h"))
+	if err != nil {
+		log.Errorf("cant parse DELETE_EXPIRED_CERTS_AFTER: %s", err)
+		return
+	}
+
 	config = Config{
-		DBDriver:         getStringEnv("DB_DRIVER", "postgres"),
-		DBUser:           getStringEnv("DB_USERNAME", "user"),
-		DBPassword:       getStringEnv("DB_PASSWORD", "password"),
-		DBAddr:           getStringEnv("DB_ADDR", "db"),
-		DBDatabase:       getStringEnv("DB_DATABASE", "db"),
-		Debug:            getIntEnv("DEBUG", 0),
-		ServerPort:       getIntEnv("SERVER_PORT", 8080),
-		CACrtPath:        getStringEnv("CA_CERT_PATH", "/etc/certs/ca.crt"),
-		PrivateKeyPath:   getStringEnv("PRIVATE_KEY_PATH", "/etc/certs/key.key"),
-		RevokeWehbook:    getStringEnv("REVOKE_WEBHOOK", ""),
-		NotifierUrl:      getStringEnv("NOTIFIER_URL", "http://api.notifier:5000"),
-		OCSPCycle:        ocspCycle,
-		SignbackDuration: signbackDuration,
-		LogLevel:         getStringEnv("LOG_LEVEL", "info"),
+		DBDriver:                getStringEnv("DB_DRIVER", "postgres"),
+		DBUser:                  getStringEnv("DB_USERNAME", "user"),
+		DBPassword:              getStringEnv("DB_PASSWORD", "password"),
+		DBAddr:                  getStringEnv("DB_ADDR", "db"),
+		DBDatabase:              getStringEnv("DB_DATABASE", "db"),
+		Debug:                   getIntEnv("DEBUG", 0),
+		ServerPort:              getIntEnv("SERVER_PORT", 8080),
+		CACrtPath:               getStringEnv("CA_CERT_PATH", "/etc/certs/ca.crt"),
+		PrivateKeyPath:          getStringEnv("PRIVATE_KEY_PATH", "/etc/certs/key.key"),
+		RevokeWehbook:           getStringEnv("REVOKE_WEBHOOK", ""),
+		NotifierUrl:             getStringEnv("NOTIFIER_URL", "http://api.notifier:5000"),
+		OCSPCycle:               ocspCycle,
+		SignbackDuration:        signbackDuration,
+		DeleteExpiredCertsAfter: deleteExpiredCertsAfter,
+		LogLevel:                getStringEnv("LOG_LEVEL", "info"),
 	}
 
 	config.GetLogger().Info("Config loaded", "Configuration", config)

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SENERGY-Platform/cert-certificate-authority/internal/cleanup"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/notifier"
 	"github.com/SENERGY-Platform/cert-certificate-authority/internal/server"
 
@@ -47,6 +48,11 @@ func main() {
 	err = notifier.StartNotifier(ctx, dbConnection, config)
 	if err != nil {
 		config.GetLogger().Error(fmt.Sprintf("[ERROR] can not start notifier: %s", err))
+		return
+	}
+	err = cleanup.StartCleanup(ctx, dbConnection, config)
+	if err != nil {
+		config.GetLogger().Error(fmt.Sprintf("can not start cleanup: %s", err))
 		return
 	}
 	server.StartServer(ctx, dbConnection, config)
