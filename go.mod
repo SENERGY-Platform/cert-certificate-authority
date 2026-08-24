@@ -1,11 +1,11 @@
 module github.com/SENERGY-Platform/cert-certificate-authority
 
-go 1.25.0
+go 1.26.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/SENERGY-Platform/go-service-base/struct-logger v0.6.0
-	github.com/SENERGY-Platform/notifier v0.0.15
+	github.com/SENERGY-Platform/notifier v0.0.18
 	github.com/cloudflare/cfssl v1.6.5
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1

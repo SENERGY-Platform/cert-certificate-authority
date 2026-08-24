@@ -31,8 +31,8 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/SENERGY-Platform/go-service-base/struct-logger v0.6.0 h1:DQNAPU1DI3XNyLaIGnHN9O0gZ7Q+tyOq/ZmAvbL/5gg=
 github.com/SENERGY-Platform/go-service-base/struct-logger v0.6.0/go.mod h1:z9cf8WOUMLoifRj5Tqts1MNe6QoPFq5Msxj899ZC11g=
-github.com/SENERGY-Platform/notifier v0.0.15 h1:R13cHPnuNYexh6Q7ciUg3z/XV8hx28ykkFyw7AZGdrM=
-github.com/SENERGY-Platform/notifier v0.0.15/go.mod h1:2ZHd27LyGD7pqNh5QzE7O8mcEe01Tvp2eOcklB62uzs=
+github.com/SENERGY-Platform/notifier v0.0.18 h1:6dji4mIg3i4Fm1v9vHEjymQhs2hUQmYZGJOOis2yiOk=
+github.com/SENERGY-Platform/notifier v0.0.18/go.mod h1:R+W8WTTOtyNgBaaAcZr/gzRtPpZttfrx41CGiX+Okc0=
 github.com/Shopify/logrus-bugsnag v0.0.0-20170309145241-6dbc35f2c30d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d h1:UrqY+r/OJnIp5u0s1SbQ8dVfLCZJsnvazdBP5hS4iRs=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=
