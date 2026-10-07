@@ -146,3 +146,13 @@ func (this *Config) GetLogger() *slog.Logger {
 	}
 	return this.logger
 }
+
+// LogValue keeps the database password out of the log.
+func (this Config) LogValue() slog.Value {
+	type plain Config // no LogValue method, so slog does not recurse
+	c := plain(this)
+	if c.DBPassword != "" {
+		c.DBPassword = "***"
+	}
+	return slog.AnyValue(c)
+}
