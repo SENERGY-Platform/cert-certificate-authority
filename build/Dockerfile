@@ -12,7 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o ../app
 FROM golang:1.25 AS prod
 WORKDIR /root
 
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.27.3
 COPY build/start_prod.sh start.sh
 COPY build/run_migrations.sh run_migrations.sh
 COPY migrations migrations
